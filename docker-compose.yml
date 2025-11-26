@@ -1,0 +1,15 @@
+services:
+  backend:
+    build: .
+    container_name: player-stats-backend
+    env_file:
+      - ../.env
+    ports:
+      - "3000:3000"
+    networks:
+      - player-stats-network
+    restart: unless-stopped
+
+networks:
+  player-stats-network:
+    external: true
