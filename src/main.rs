@@ -1,61 +1,26 @@
-use axum::{
-    routing::get,
-    Router,
-    Json,
-};
-use serde::Serialize;
-use tokio_postgres::NoTls;
-use utoipa::{OpenApi, ToSchema};
+mod api;
+
+use axum::{routing::get, Router};
+use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-#[derive(Serialize, ToSchema)]
-struct CountResponse {
-    count: i64,
-}
+use api::boxscores::{BoxScore, CountResponse, filter_boxscores, get_count};
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(get_count),
-    components(schemas(CountResponse))
+    paths(
+        api::boxscores::routes::get_count,
+        api::boxscores::routes::filter_boxscores
+    ),
+    components(schemas(CountResponse, BoxScore))
 )]
 struct ApiDoc;
-
-#[utoipa::path(
-    get,
-    path = "/api/boxscores/count",
-    responses(
-        (status = 200, description = "Get total box score count", body = CountResponse),
-        (status = 500, description = "Internal server error")
-    )
-)]
-async fn get_count() -> Result<Json<CountResponse>, String> {
-    let database_url = std::env::var("DATABASE_URL")
-        .map_err(|_| "DATABASE_URL not set".to_string())?;
-
-    let (client, connection) = tokio_postgres::connect(&database_url, NoTls)
-        .await
-        .map_err(|e| format!("Connection error: {}", e))?;
-
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("Connection error: {}", e);
-        }
-    });
-
-    let row = client
-        .query_one("SELECT COUNT(*) FROM player_box_scores", &[])
-        .await
-        .map_err(|e| format!("Query error: {}", e))?;
-
-    let count: i64 = row.get(0);
-
-    Ok(Json(CountResponse { count }))
-}
 
 #[tokio::main]
 async fn main() {
     let app: Router = Router::new()
         .route("/api/boxscores/count", get(get_count))
+        .route("/api/boxscores/filter", get(filter_boxscores))
         .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()));
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
