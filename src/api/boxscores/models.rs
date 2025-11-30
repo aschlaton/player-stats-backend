@@ -39,6 +39,10 @@ pub struct FilterParams {
     pub team: Option<String>,
     pub player_id: Option<String>,
     pub game_id: Option<String>,
+
+    // Pagination
+    pub limit: Option<i64>,
+    pub offset: Option<i64>,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -73,4 +77,12 @@ pub struct BoxScore {
     pub pf: Option<i32>,
     pub plus_minus: Option<i32>,
     pub fp: Option<f64>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct PaginatedResponse {
+    pub data: Vec<BoxScore>,
+    pub total: i64,
+    pub limit: i64,
+    pub offset: i64,
 }

@@ -1,7 +1,7 @@
 use axum::{extract::Query, Json};
 use tokio_postgres::NoTls;
 
-use super::models::{BoxScore, CountResponse, FilterParams};
+use super::models::{BoxScore, CountResponse, FilterParams, PaginatedResponse};
 
 #[utoipa::path(
     get,
@@ -40,13 +40,13 @@ pub async fn get_count() -> Result<Json<CountResponse>, String> {
     path = "/api/boxscores/filter",
     params(FilterParams),
     responses(
-        (status = 200, description = "Filter box scores by stats and metadata", body = Vec<BoxScore>),
+        (status = 200, description = "Filter box scores by stats and metadata", body = PaginatedResponse),
         (status = 500, description = "Internal server error")
     )
 )]
 pub async fn filter_boxscores(
     Query(params): Query<FilterParams>,
-) -> Result<Json<Vec<BoxScore>>, String> {
+) -> Result<Json<PaginatedResponse>, String> {
     let database_url = std::env::var("DATABASE_URL")
         .map_err(|_| "DATABASE_URL not set".to_string())?;
 
@@ -60,127 +60,107 @@ pub async fn filter_boxscores(
         }
     });
 
-    // build query
     let mut query = String::from("SELECT player_id, game_id, team_id, season, player, team, match_up, game_date, w_l, min, pts, fgm, fga, fg_percent, three_pm, three_pa, three_p_percent, ftm, fta, ft_percent, oreb, dreb, reb, ast, stl, blk, tov, pf, plus_minus, fp FROM player_box_scores WHERE 1=1");
-    let mut param_values: Vec<String> = Vec::new();
 
-    // numeric filters
     if let Some(pts) = params.pts {
-        query.push_str(&format!(" AND pts >= ${}", param_values.len() + 1));
-        param_values.push(pts.to_string());
+        query.push_str(&format!(" AND pts >= {}", pts));
     }
     if let Some(reb) = params.reb {
-        query.push_str(&format!(" AND reb >= ${}", param_values.len() + 1));
-        param_values.push(reb.to_string());
+        query.push_str(&format!(" AND reb >= {}", reb));
     }
     if let Some(ast) = params.ast {
-        query.push_str(&format!(" AND ast >= ${}", param_values.len() + 1));
-        param_values.push(ast.to_string());
+        query.push_str(&format!(" AND ast >= {}", ast));
     }
     if let Some(stl) = params.stl {
-        query.push_str(&format!(" AND stl >= ${}", param_values.len() + 1));
-        param_values.push(stl.to_string());
+        query.push_str(&format!(" AND stl >= {}", stl));
     }
     if let Some(blk) = params.blk {
-        query.push_str(&format!(" AND blk >= ${}", param_values.len() + 1));
-        param_values.push(blk.to_string());
+        query.push_str(&format!(" AND blk >= {}", blk));
     }
     if let Some(fgm) = params.fgm {
-        query.push_str(&format!(" AND fgm >= ${}", param_values.len() + 1));
-        param_values.push(fgm.to_string());
+        query.push_str(&format!(" AND fgm >= {}", fgm));
     }
     if let Some(fga) = params.fga {
-        query.push_str(&format!(" AND fga >= ${}", param_values.len() + 1));
-        param_values.push(fga.to_string());
+        query.push_str(&format!(" AND fga >= {}", fga));
     }
     if let Some(fg_percent) = params.fg_percent {
-        query.push_str(&format!(" AND fg_percent >= ${}", param_values.len() + 1));
-        param_values.push(fg_percent.to_string());
+        query.push_str(&format!(" AND fg_percent >= {}", fg_percent));
     }
     if let Some(three_pm) = params.three_pm {
-        query.push_str(&format!(" AND three_pm >= ${}", param_values.len() + 1));
-        param_values.push(three_pm.to_string());
+        query.push_str(&format!(" AND three_pm >= {}", three_pm));
     }
     if let Some(three_pa) = params.three_pa {
-        query.push_str(&format!(" AND three_pa >= ${}", param_values.len() + 1));
-        param_values.push(three_pa.to_string());
+        query.push_str(&format!(" AND three_pa >= {}", three_pa));
     }
     if let Some(three_p_percent) = params.three_p_percent {
-        query.push_str(&format!(" AND three_p_percent >= ${}", param_values.len() + 1));
-        param_values.push(three_p_percent.to_string());
+        query.push_str(&format!(" AND three_p_percent >= {}", three_p_percent));
     }
     if let Some(ftm) = params.ftm {
-        query.push_str(&format!(" AND ftm >= ${}", param_values.len() + 1));
-        param_values.push(ftm.to_string());
+        query.push_str(&format!(" AND ftm >= {}", ftm));
     }
     if let Some(fta) = params.fta {
-        query.push_str(&format!(" AND fta >= ${}", param_values.len() + 1));
-        param_values.push(fta.to_string());
+        query.push_str(&format!(" AND fta >= {}", fta));
     }
     if let Some(ft_percent) = params.ft_percent {
-        query.push_str(&format!(" AND ft_percent >= ${}", param_values.len() + 1));
-        param_values.push(ft_percent.to_string());
+        query.push_str(&format!(" AND ft_percent >= {}", ft_percent));
     }
     if let Some(oreb) = params.oreb {
-        query.push_str(&format!(" AND oreb >= ${}", param_values.len() + 1));
-        param_values.push(oreb.to_string());
+        query.push_str(&format!(" AND oreb >= {}", oreb));
     }
     if let Some(dreb) = params.dreb {
-        query.push_str(&format!(" AND dreb >= ${}", param_values.len() + 1));
-        param_values.push(dreb.to_string());
+        query.push_str(&format!(" AND dreb >= {}", dreb));
     }
     if let Some(tov) = params.tov {
-        query.push_str(&format!(" AND tov >= ${}", param_values.len() + 1));
-        param_values.push(tov.to_string());
+        query.push_str(&format!(" AND tov >= {}", tov));
     }
     if let Some(pf) = params.pf {
-        query.push_str(&format!(" AND pf >= ${}", param_values.len() + 1));
-        param_values.push(pf.to_string());
+        query.push_str(&format!(" AND pf >= {}", pf));
     }
     if let Some(plus_minus) = params.plus_minus {
-        query.push_str(&format!(" AND plus_minus >= ${}", param_values.len() + 1));
-        param_values.push(plus_minus.to_string());
+        query.push_str(&format!(" AND plus_minus >= {}", plus_minus));
     }
     if let Some(fp) = params.fp {
-        query.push_str(&format!(" AND fp >= ${}", param_values.len() + 1));
-        param_values.push(fp.to_string());
+        query.push_str(&format!(" AND fp >= {}", fp));
     }
     if let Some(min) = params.min {
-        query.push_str(&format!(" AND min >= ${}", param_values.len() + 1));
-        param_values.push(min.to_string());
+        query.push_str(&format!(" AND min >= {}", min));
     }
 
-    // meta filters
-    if let Some(season) = params.season {
-        query.push_str(&format!(" AND season = ${}", param_values.len() + 1));
-        param_values.push(season);
+    if let Some(ref season) = params.season {
+        query.push_str(&format!(" AND season = '{}'", season.replace("'", "''")));
     }
-    if let Some(player) = params.player {
-        query.push_str(&format!(" AND player ILIKE ${}", param_values.len() + 1));
-        param_values.push(format!("%{}%", player));
+    if let Some(ref player) = params.player {
+        query.push_str(&format!(" AND player ILIKE '%{}%'", player.replace("'", "''")));
     }
-    if let Some(team) = params.team {
-        query.push_str(&format!(" AND team = ${}", param_values.len() + 1));
-        param_values.push(team);
+    if let Some(ref team) = params.team {
+        query.push_str(&format!(" AND team = '{}'", team.replace("'", "''")));
     }
-    if let Some(player_id) = params.player_id {
-        query.push_str(&format!(" AND player_id = ${}", param_values.len() + 1));
-        param_values.push(player_id);
+    if let Some(ref player_id) = params.player_id {
+        query.push_str(&format!(" AND player_id = '{}'", player_id.replace("'", "''")));
     }
-    if let Some(game_id) = params.game_id {
-        query.push_str(&format!(" AND game_id = ${}", param_values.len() + 1));
-        param_values.push(game_id);
+    if let Some(ref game_id) = params.game_id {
+        query.push_str(&format!(" AND game_id = '{}'", game_id.replace("'", "''")));
     }
 
-    query.push_str(" ORDER BY game_date DESC LIMIT 1000");
+    let count_query = query.replace(
+        "SELECT player_id, game_id, team_id, season, player, team, match_up, game_date, w_l, min, pts, fgm, fga, fg_percent, three_pm, three_pa, three_p_percent, ftm, fta, ft_percent, oreb, dreb, reb, ast, stl, blk, tov, pf, plus_minus, fp FROM player_box_scores",
+        "SELECT COUNT(*) FROM player_box_scores"
+    );
 
-    let params_refs: Vec<&(dyn tokio_postgres::types::ToSql + Sync)> = param_values
-        .iter()
-        .map(|s| s as &(dyn tokio_postgres::types::ToSql + Sync))
-        .collect();
+    let count_row = client
+        .query_one(&count_query, &[])
+        .await
+        .map_err(|e| format!("Count query error: {}", e))?;
+
+    let total: i64 = count_row.get(0);
+
+    let limit = params.limit.unwrap_or(50);
+    let offset = params.offset.unwrap_or(0);
+
+    query.push_str(&format!(" ORDER BY game_date DESC LIMIT {} OFFSET {}", limit, offset));
 
     let rows = client
-        .query(&query, &params_refs)
+        .query(&query, &[])
         .await
         .map_err(|e| format!("Query error: {}", e))?;
 
@@ -220,5 +200,10 @@ pub async fn filter_boxscores(
         })
         .collect();
 
-    Ok(Json(box_scores))
+    Ok(Json(PaginatedResponse {
+        data: box_scores,
+        total,
+        limit,
+        offset,
+    }))
 }
