@@ -1112,6 +1112,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-postgres",
+ "tower-http",
  "utoipa",
  "utoipa-swagger-ui",
 ]

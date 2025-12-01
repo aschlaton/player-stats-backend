@@ -4,6 +4,7 @@ use axum::{routing::{get, post}, Router};
 use rig::providers::gemini;
 use std::sync::Arc;
 use tokio_postgres::NoTls;
+use tower_http::cors::{CorsLayer, Any};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -44,11 +45,17 @@ async fn main() {
         db_client: Arc::new(db_client),
     });
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     let app: Router = Router::new()
         .route("/api/boxscores/count", get(get_count))
         .route("/api/boxscores", get(get_boxscores))
         .route("/api/query", post(post_query))
         .with_state(state)
+        .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()));
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
