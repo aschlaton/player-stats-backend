@@ -54,7 +54,7 @@ pub async fn post_query(
     properties.insert("team".to_string(), create_schema("string", "Team abbreviation (e.g., 'LAL', 'GSW')", None));
     properties.insert("season".to_string(), create_schema("string", "Season in format '2024-25'", None));
     properties.insert("player".to_string(), create_schema("string", "Player name", None));
-    properties.insert("limit".to_string(), create_schema("integer", "Number of results", None));
+    properties.insert("limit".to_string(), create_schema("integer", "Max number of results", None));
     properties.insert("sort_by".to_string(), create_schema(
         "string",
         "Field to sort by",
@@ -72,8 +72,6 @@ pub async fn post_query(
     properties.insert("asc".to_string(), create_schema("boolean", "Sort ascending (true) or descending (false)", None));
     properties.insert("reasoning".to_string(), create_schema("string", "Explain your reasoning for extracting these parameters from the query", None));
 
-    println!("Schema has these fields: {:?}", properties.keys().collect::<Vec<_>>());
-
     let schema = Schema {
         r#type: "object".to_string(),
         format: None,
@@ -83,7 +81,7 @@ pub async fn post_query(
         max_items: None,
         min_items: None,
         properties: Some(properties),
-        required: Some(vec!["reasoning".to_string()]),
+        required: None,
         items: None,
     };
 
