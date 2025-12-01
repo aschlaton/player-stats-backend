@@ -6,7 +6,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio_postgres::Client;
 
-use super::boxscores::models::FilterParams;
+use super::boxscores::models::QueryParams;
 use super::db::query_boxscores;
 
 #[derive(Debug, Error)]
@@ -16,7 +16,7 @@ pub struct BoxScoresError(String);
 #[derive(Deserialize)]
 pub struct GetBoxScoresArgs {
     #[serde(flatten)]
-    pub params: FilterParams,
+    pub params: QueryParams,
 }
 
 pub struct GetBoxScores {

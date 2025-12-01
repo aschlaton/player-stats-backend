@@ -2,7 +2,7 @@ use axum::{extract::Query, Json};
 use tokio_postgres::NoTls;
 
 use crate::api::db::query_boxscores;
-use super::models::{CountResponse, FilterParams, PaginatedResponse};
+use super::models::{CountResponse, QueryParams, PaginatedResponse};
 
 #[utoipa::path(
     get,
@@ -39,14 +39,14 @@ pub async fn get_count() -> Result<Json<CountResponse>, String> {
 #[utoipa::path(
     get,
     path = "/api/boxscores",
-    params(FilterParams),
+    params(QueryParams),
     responses(
         (status = 200, description = "Get box scores with optional filters, sorting, and pagination", body = PaginatedResponse),
         (status = 500, description = "Internal server error")
     )
 )]
 pub async fn get_boxscores(
-    Query(params): Query<FilterParams>,
+    Query(params): Query<QueryParams>,
 ) -> Result<Json<PaginatedResponse>, String> {
     let database_url = std::env::var("DATABASE_URL")
         .map_err(|_| "DATABASE_URL not set".to_string())?;

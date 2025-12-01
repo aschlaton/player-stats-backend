@@ -119,7 +119,7 @@ pub struct CountResponse {
 }
 
 #[derive(Deserialize, IntoParams)]
-pub struct FilterParams {
+pub struct QueryParams {
     // Main stats
     pub pts: Option<i32>,
     pub reb: Option<i32>,

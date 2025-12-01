@@ -1,10 +1,10 @@
 use tokio_postgres::Client;
 
-use super::boxscores::models::{BoxScore, FilterParams, PaginatedResponse};
+use super::boxscores::models::{BoxScore, QueryParams, PaginatedResponse};
 
 pub async fn query_boxscores(
     client: &Client,
-    params: FilterParams,
+    params: QueryParams,
 ) -> Result<PaginatedResponse, String> {
     let mut query = String::from("SELECT player_id, game_id, team_id, season, player, team, match_up, game_date, w_l, min, pts, fgm, fga, fg_percent, three_pm, three_pa, three_p_percent, ftm, fta, ft_percent, oreb, dreb, reb, ast, stl, blk, tov, pf, plus_minus, fp FROM player_box_scores WHERE 1=1");
 
