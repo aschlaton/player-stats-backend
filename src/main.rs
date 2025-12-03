@@ -1,7 +1,7 @@
 mod api;
+mod llm;
 
 use axum::{routing::{get, post}, Router};
-use rig::providers::gemini;
 use std::sync::Arc;
 use tokio_postgres::NoTls;
 use tower_http::cors::{CorsLayer, Any};
@@ -10,6 +10,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use api::boxscores::{BoxScore, CountResponse, get_boxscores, get_count};
 use api::query::{post_query, AppState};
+use llm::get_provider;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -25,8 +26,8 @@ struct ApiDoc;
 async fn main() {
     let database_url = std::env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
-    let gemini_api_key = std::env::var("GEMINI_API_KEY")
-        .expect("GEMINI_API_KEY must be set");
+
+    let llm_provider = get_provider();
 
     let (db_client, connection) = tokio_postgres::connect(&database_url, NoTls)
         .await
@@ -38,10 +39,8 @@ async fn main() {
         }
     });
 
-    let gemini_client = gemini::Client::new(&gemini_api_key);
-
     let state = Arc::new(AppState {
-        gemini_client,
+        llm_provider,
         db_client: Arc::new(db_client),
     });
 
