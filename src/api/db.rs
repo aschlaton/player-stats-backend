@@ -160,5 +160,6 @@ pub async fn query_boxscores(
         limit,
         offset,
         explicit_limit,
+        query_params: params,
     })
 }

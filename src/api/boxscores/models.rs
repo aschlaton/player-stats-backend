@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize, Clone, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum SortField {
     GameDate,
@@ -57,30 +57,34 @@ impl SortField {
     }
 }
 
-#[derive(Deserialize, Serialize, ToSchema)]
+#[derive(Deserialize, Serialize, Clone, ToSchema)]
+pub struct WeightedField {
+    pub field: SortField,
+    pub weight: f64,
+}
+
+#[derive(Deserialize, Serialize, Clone, ToSchema)]
 #[serde(untagged)]
 pub enum SortExpression {
     Field(SortField),
-    Weighted { field: SortField, weight: f64 },
-    Sum { terms: Vec<SortExpression> },
+    Sum { terms: Vec<WeightedField> },
 }
 
 impl SortExpression {
     pub fn as_sql(&self) -> String {
         match self {
             SortExpression::Field(f) => f.as_sql().to_string(),
-            SortExpression::Weighted { field, weight } => {
-                format!("({} * {})", weight, field.as_sql())
-            }
             SortExpression::Sum { terms } => {
-                let parts: Vec<String> = terms.iter().map(|e| e.as_sql()).collect();
+                let parts: Vec<String> = terms.iter().map(|w| {
+                    format!("({} * {})", w.weight, w.field.as_sql())
+                }).collect();
                 format!("({})", parts.join(" + "))
             }
         }
     }
 }
 
-#[derive(Deserialize, Serialize, ToSchema, IntoParams)]
+#[derive(Deserialize, Serialize, Clone, ToSchema)]
 pub struct SortParams {
     pub sort_by: Option<SortExpression>,
     #[serde(default, deserialize_with = "deserialize_bool")]
@@ -118,7 +122,7 @@ pub struct CountResponse {
     pub count: i64,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, Serialize, Clone, ToSchema, IntoParams)]
 pub struct QueryParams {
     // Main stats
     pub pts: Option<i32>,
@@ -202,4 +206,5 @@ pub struct PaginatedResponse {
     pub limit: i64,
     pub offset: i64,
     pub explicit_limit: bool,
+    pub query_params: QueryParams,
 }
