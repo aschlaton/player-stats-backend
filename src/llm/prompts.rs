@@ -3,6 +3,8 @@ pub const QUERY_PROMPT: &str =
 
 CRITICAL: Only include parameters that are EXPLICITLY mentioned in the user's query. Do NOT infer or add parameters that are not requested.
 
+DO infer a player's full name from the query if the user provides a partial name, nickname, or typo (i.e. AD -> Anthony Davis, LBJ -> LeBron James, KD -> Kevin Durant, etc.)
+
 Your JSON output will be processed by this code:
 
 ```rust
