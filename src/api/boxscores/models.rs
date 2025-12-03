@@ -201,4 +201,5 @@ pub struct PaginatedResponse {
     pub total: i64,
     pub limit: i64,
     pub offset: i64,
+    pub explicit_limit: bool,
 }

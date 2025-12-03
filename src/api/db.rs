@@ -100,6 +100,7 @@ pub async fn query_boxscores(
 
     let total: i64 = count_row.get(0);
 
+    let explicit_limit = params.limit.is_some();
     let limit = params.limit.unwrap_or(50);
     let offset = params.offset.unwrap_or(0);
 
@@ -158,5 +159,6 @@ pub async fn query_boxscores(
         total,
         limit,
         offset,
+        explicit_limit,
     })
 }
