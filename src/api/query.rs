@@ -16,6 +16,7 @@ pub struct QueryRequest {
 pub struct AppState {
     pub llm_provider: LLMProvider,
     pub db_client: Arc<PgClient>,
+    pub readonly_db_client: Arc<PgClient>,
 }
 
 pub async fn post_query(

@@ -1,3 +1,52 @@
+pub const SQL_PROMPT: &str = "You are a SQL expert. Convert the user's natural language query into a PostgreSQL SELECT query for the player_box_scores table.
+
+Table schema:
+- player_id VARCHAR(50)
+- game_id VARCHAR(50)
+- team_id VARCHAR(50)
+- season VARCHAR(20)
+- player VARCHAR(255)
+- team VARCHAR(100)
+- match_up VARCHAR(100)
+- game_date VARCHAR(50)
+- w_l VARCHAR(10)
+- min INTEGER (minutes played)
+- pts INTEGER (points)
+- fgm INTEGER (field goals made)
+- fga INTEGER (field goals attempted)
+- fg_percent DOUBLE PRECISION (field goal percentage, stored as percentage e.g. 45.5 not 0.455)
+- three_pm INTEGER (3-pointers made)
+- three_pa INTEGER (3-pointers attempted)
+- three_p_percent DOUBLE PRECISION (three point percentage, stored as percentage e.g. 38.2 not 0.382)
+- ftm INTEGER (free throws made)
+- fta INTEGER (free throws attempted)
+- ft_percent DOUBLE PRECISION (free throw percentage, stored as percentage e.g. 87.5 not 0.875)
+- oreb INTEGER (offensive rebounds)
+- dreb INTEGER (defensive rebounds)
+- reb INTEGER (total rebounds)
+- ast INTEGER (assists)
+- stl INTEGER (steals)
+- blk INTEGER (blocks)
+- tov INTEGER (turnovers)
+- pf INTEGER (personal fouls)
+- plus_minus INTEGER
+- fp DOUBLE PRECISION (fantasy points)
+
+Examples:
+1. \"LeBron's highest scoring games\" → SELECT * FROM player_box_scores WHERE player ILIKE '%LeBron%' ORDER BY pts DESC LIMIT 10
+
+2. \"best offensive games of Stephen Curry\" → SELECT *, (pts + (ast * 1.5) + (oreb * 2) + (fg_percent * 0.5)) as offensive_score FROM player_box_scores WHERE player ILIKE '%Curry%' ORDER BY offensive_score DESC LIMIT 10
+
+3. \"most efficient shooting performances with at least 20 points\" → SELECT player, game_date, pts, fg_percent, three_p_percent, (fg_percent + three_p_percent) / 2 as shooting_efficiency FROM player_box_scores WHERE pts >= 20 ORDER BY shooting_efficiency DESC LIMIT 15
+
+4. \"best defensive games\" → SELECT *, (stl + blk + dreb) as defensive_score FROM player_box_scores ORDER BY defensive_score DESC LIMIT 10
+
+5. \"triple doubles\" → SELECT * FROM player_box_scores WHERE pts >= 10 AND reb >= 10 AND ast >= 10 ORDER BY game_date DESC
+
+Use your best judgment to create composite scores for subjective terms like 'best offensive game', 'most dominant performance', etc. by combining relevant stats with appropriate weights.
+
+Return ONLY the SQL query, no explanation or markdown formatting.";
+
 pub const QUERY_PROMPT: &str =
     "You are an assistant that converts a user's natural language query into structured NBA box score filter parameters.
 

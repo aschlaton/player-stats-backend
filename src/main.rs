@@ -10,6 +10,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use api::boxscores::{BoxScore, CountResponse, get_boxscores, get_count};
 use api::query::{post_query, AppState};
+use api::sql::post_sql;
 use llm::get_provider;
 
 #[derive(OpenApi)]
@@ -39,9 +40,23 @@ async fn main() {
         }
     });
 
+    let readonly_url = std::env::var("DATABASE_URL_READONLY")
+        .expect("DATABASE_URL_READONLY must be set");
+
+    let (readonly_db_client, readonly_connection) = tokio_postgres::connect(&readonly_url, NoTls)
+        .await
+        .expect("Failed to connect to read-only database");
+
+    tokio::spawn(async move {
+        if let Err(e) = readonly_connection.await {
+            eprintln!("Read-only database connection error: {}", e);
+        }
+    });
+
     let state = Arc::new(AppState {
         llm_provider,
         db_client: Arc::new(db_client),
+        readonly_db_client: Arc::new(readonly_db_client),
     });
 
     let cors = CorsLayer::new()
@@ -53,6 +68,7 @@ async fn main() {
         .route("/api/boxscores/count", get(get_count))
         .route("/api/boxscores", get(get_boxscores))
         .route("/api/query", post(post_query))
+        .route("/api/sql", post(post_sql))
         .with_state(state)
         .layer(cors)
         .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()));

@@ -25,6 +25,33 @@ impl LLMProvider {
         LLMProvider::OpenAI(openai::Client::new(&api_key))
     }
 
+    pub async fn prompt(
+        &self,
+        system_prompt: &str,
+        user_query: &str,
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        match self {
+            LLMProvider::Gemini(client) => {
+                let agent = client
+                    .agent(GEMINI_MODEL)
+                    .preamble(system_prompt)
+                    .build();
+
+                let response = agent.prompt(user_query).await?;
+                Ok(response)
+            }
+            LLMProvider::OpenAI(client) => {
+                let agent = client
+                    .agent(OPENAI_MODEL)
+                    .preamble(system_prompt)
+                    .build();
+
+                let response = agent.prompt(user_query).await?;
+                Ok(response)
+            }
+        }
+    }
+
     pub async fn prompt_with_schema(
         &self,
         system_prompt: &str,
