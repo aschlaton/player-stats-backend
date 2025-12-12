@@ -39,31 +39,39 @@ pub async fn execute_sql_query(
         let mut obj = serde_json::Map::new();
         for (idx, column) in row.columns().iter().enumerate() {
             let value: Value = match column.type_().name() {
-                "int4" | "int8" => {
+                "int4" => {
+                    row.try_get::<_, Option<i32>>(idx)
+                        .unwrap_or(None)
+                        .map(|v| serde_json::json!(v))
+                        .unwrap_or(Value::Null)
+                }
+                "int8" => {
                     row.try_get::<_, Option<i64>>(idx)
-                        .ok()
-                        .flatten()
+                        .unwrap_or(None)
                         .map(|v| serde_json::json!(v))
                         .unwrap_or(Value::Null)
                 }
                 "float4" | "float8" => {
                     row.try_get::<_, Option<f64>>(idx)
-                        .ok()
-                        .flatten()
+                        .unwrap_or(None)
                         .map(|v| serde_json::json!(v))
                         .unwrap_or(Value::Null)
                 }
                 "varchar" | "text" => {
                     row.try_get::<_, Option<String>>(idx)
-                        .ok()
-                        .flatten()
+                        .unwrap_or(None)
                         .map(|v| serde_json::json!(v))
                         .unwrap_or(Value::Null)
                 }
                 "bool" => {
                     row.try_get::<_, Option<bool>>(idx)
-                        .ok()
-                        .flatten()
+                        .unwrap_or(None)
+                        .map(|v| serde_json::json!(v))
+                        .unwrap_or(Value::Null)
+                }
+                "timestamp" => {
+                    row.try_get::<_, Option<String>>(idx)
+                        .unwrap_or(None)
                         .map(|v| serde_json::json!(v))
                         .unwrap_or(Value::Null)
                 }
